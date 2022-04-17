@@ -2,10 +2,7 @@ var userFormEl=document.querySelector("#user-form");
 var nameInputEl=document.querySelector("#username");
 var repoContainerEl=document.querySelector("#repos-container");
 var repoSearchTerm=document.querySelector("#repo-search-term");
-
-
-
-
+var languageButtonEl=document.querySelector("#language-buttons");
 
 var getUserRepos = function(user){
   //format the github api url
@@ -18,14 +15,14 @@ var getUserRepos = function(user){
         displayRepos(data,user);
     });
   }else{
-    alert("Error: GitHub User Not Found");
+    alert("Error"+response.statusText);
   }
   })
   .catch(function(error){
     //Notice this '.catch()' getting chained onto the end of the'.then()' method
     alert("Unable to connect to GitHub");
   });
-}
+};
 
 var formSubmitHandler=function(event){
   event.preventDefault();
@@ -35,12 +32,13 @@ var formSubmitHandler=function(event){
   if(username){
     getUserRepos(username);
     nameInputEl.value="";
+    repoContainerEl.textContent = "";
   }else{
     alert("please enter a Github username")
   }
 }
 
-userFormEl.addEventListener("submit",formSubmitHandler)
+
 
 var displayRepos=function(repos,searchTerm){
 
@@ -90,4 +88,33 @@ var displayRepos=function(repos,searchTerm){
     repoContainerEl.appendChild(repoEl);
 
   }
-}
+};
+
+var getFeaturedRepos=function(language){
+  var apiUrl="https://api.github.com/search/repositories?q=" + language + "+is:featured&sort=help-wanted-issues";
+
+  fetch(apiUrl).then(function(response){
+    if(response.ok){
+      response.json().then(function(data){
+        displayRepos(data.items, language);
+      });
+    }
+    else{
+      alert("Error: " + response.statusText);
+    }
+  });
+};
+
+var buttonClickHandler=function(event){
+  var language=event.target.getAttribute("data-language");
+  if(language){
+    getFeaturedRepos(language);
+
+    //clear old content
+    repoContainerEl.textContent="";
+  }
+
+};
+
+userFormEl.addEventListener("submit",formSubmitHandler);
+languageButtonEl.addEventListener("click",buttonClickHandler);
